@@ -687,7 +687,10 @@ export class WidgetEditorComponent {
 
   // Import Methods
   importChartData(): void {
-    if (!this.chartPasteData.trim()) return;
+    if (!this.chartPasteData.trim()) {
+      alert('Cole os dados antes de importar');
+      return;
+    }
 
     const lines = this.chartPasteData.trim().split('\n');
     const newData: { label: string; value: number }[] = [];
@@ -712,11 +715,21 @@ export class WidgetEditorComponent {
       this.updateChartData();
       this.chartPasteData = '';
       this.chartInputMode = 'manual';
+      alert(`${newData.length} itens importados com sucesso!`);
+    } else {
+      alert('Nenhum dado válido encontrado. Use o formato: Label, Valor (um por linha)');
     }
   }
 
   importTableData(): void {
-    if (!this.tablePasteData.trim() || this.tableColumns.length === 0) return;
+    if (this.tableColumns.length === 0) {
+      alert('Configure as colunas da tabela antes de importar dados');
+      return;
+    }
+    if (!this.tablePasteData.trim()) {
+      alert('Cole os dados antes de importar');
+      return;
+    }
 
     const lines = this.tablePasteData.trim().split('\n');
     const newData: any[] = [];
@@ -748,6 +761,9 @@ export class WidgetEditorComponent {
       this.updateTableData();
       this.tablePasteData = '';
       this.tableInputMode = 'manual';
+      alert(`${newData.length} linhas importadas com sucesso!`);
+    } else {
+      alert('Nenhum dado válido encontrado. Verifique o formato dos dados.');
     }
   }
 }

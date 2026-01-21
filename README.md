@@ -1,27 +1,63 @@
-# MetaflowDashboard
+# MetaFlow Dashboard
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.3.17.
+Plataforma web dinâmica (SPA) para acompanhamento de metas corporativas e relatórios gerenciais mensais.
 
-## Development server
+## Tecnologias
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+- **Angular 17+** - Framework SPA
+- **Tailwind CSS** - Estilização utilitária
+- **D3.js** - Gráficos vetoriais de alta performance
 
-## Code scaffolding
+## Funcionalidades
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+### Navegação
+- **Sidebar Lateral**: Lista de projetos ativos com seleção visual
+- **Barra Superior**: Seletor de mês/relatório e controles de edição
+- **Grid Responsivo**: Layout flexível com widgets de 1, 2 ou 3 colunas
 
-## Build
+### Catálogo de Widgets
+- **KPI Card**: Cartões de destaque para números grandes com cores customizáveis
+- **Gráfico de Barras**: Comparação de valores ao longo do tempo (D3.js)
+- **Gráfico de Pizza**: Visualização de proporções e distribuição (D3.js)
+- **Tabela de Dados**: Listas com semáforo visual (verde/amarelo/vermelho)
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+### Modo de Edição (Self-Service)
+- Botão "Editar Painel" para ativar modo de edição
+- Editor lateral com validação JSON para entrada de dados
+- Adicionar/remover widgets via menu flutuante (FAB)
+- Personalização de títulos e cores em tempo real
 
-## Running unit tests
+## Estrutura do Projeto
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+```
+src/app/
+├── components/
+│   ├── sidebar/           # Navegação lateral
+│   ├── topbar/            # Barra superior
+│   ├── dashboard-grid/    # Grid de widgets
+│   ├── widget-editor/     # Editor de dados JSON
+│   ├── add-widget-menu/   # Menu FAB para adicionar widgets
+│   └── widgets/
+│       ├── kpi-card/      # Widget KPI
+│       ├── bar-chart/     # Gráfico de barras D3
+│       ├── pie-chart/     # Gráfico de pizza D3
+│       └── data-table/    # Tabela com status
+├── models/                # Interfaces TypeScript
+└── services/              # Estado da aplicação (signals)
+```
 
-## Running end-to-end tests
+## Executar
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+```bash
+npm install
+npm start
+```
 
-## Further help
+Acesse `http://localhost:4200`
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+## Paleta de Cores
+
+- **Brand (Roxo)**: `#7c3aed`
+- **Ciano**: `#06b6d4`
+- **Lima**: `#84cc16`
+- **Fundo**: `bg-gray-100`

@@ -11,6 +11,7 @@ import { ProgressCardComponent } from '../widgets/progress-card/progress-card.co
 import { ComparisonCardComponent } from '../widgets/comparison-card/comparison-card.component';
 import { TextBlockComponent } from '../widgets/text-block/text-block.component';
 import { TaskListComponent } from '../widgets/task-list/task-list.component';
+import { JiraSprintComponent } from '../widgets/jira-sprint/jira-sprint.component';
 import { Widget } from '../../models/dashboard.models';
 
 @Component({
@@ -27,7 +28,8 @@ import { Widget } from '../../models/dashboard.models';
     ProgressCardComponent,
     ComparisonCardComponent,
     TextBlockComponent,
-    TaskListComponent
+    TaskListComponent,
+    JiraSprintComponent
   ],
   template: `
     <div class="p-6 overflow-y-auto h-full">
@@ -97,6 +99,9 @@ import { Widget } from '../../models/dashboard.models';
                 }
                 @case ('task-list') {
                   <app-task-list [widget]="widget" />
+                }
+                @case ('jira-sprint') {
+                  <app-jira-sprint [widget]="widget" />
                 }
               }
             </div>

@@ -33,7 +33,7 @@ export interface Widget {
   config: WidgetConfig;
 }
 
-export type WidgetType = 'kpi-card' | 'bar-chart' | 'pie-chart' | 'data-table' | 'gauge-chart' | 'line-chart' | 'progress-card' | 'comparison-card' | 'text-block' | 'task-list';
+export type WidgetType = 'kpi-card' | 'bar-chart' | 'pie-chart' | 'data-table' | 'gauge-chart' | 'line-chart' | 'progress-card' | 'comparison-card' | 'text-block' | 'task-list' | 'jira-sprint';
 
 export type UserRole = 'admin' | 'editor' | 'viewer';
 

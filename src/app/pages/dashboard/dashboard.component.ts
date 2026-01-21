@@ -6,6 +6,7 @@ import { DashboardGridComponent } from '../../components/dashboard-grid/dashboar
 import { WidgetEditorComponent } from '../../components/widget-editor/widget-editor.component';
 import { AddWidgetMenuComponent } from '../../components/add-widget-menu/add-widget-menu.component';
 import { ProjectModalComponent } from '../../components/project-modal/project-modal.component';
+import { EditProjectModalComponent } from '../../components/edit-project-modal/edit-project-modal.component';
 import { PanelModalComponent } from '../../components/panel-modal/panel-modal.component';
 import { ReportModalComponent } from '../../components/report-modal/report-modal.component';
 
@@ -20,6 +21,7 @@ import { ReportModalComponent } from '../../components/report-modal/report-modal
     WidgetEditorComponent,
     AddWidgetMenuComponent,
     ProjectModalComponent,
+    EditProjectModalComponent,
     PanelModalComponent,
     ReportModalComponent
   ],
@@ -45,6 +47,7 @@ import { ReportModalComponent } from '../../components/report-modal/report-modal
       
       <!-- Modals -->
       <app-project-modal />
+      <app-edit-project-modal />
       <app-panel-modal />
       <app-report-modal />
     </div>

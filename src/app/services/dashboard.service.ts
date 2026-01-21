@@ -17,6 +17,8 @@ export class DashboardService {
   private editMode = signal<boolean>(false);
   private selectedWidgetId = signal<string | null>(null);
   private projectModalOpen = signal<boolean>(false);
+  private editProjectModalOpen = signal<boolean>(false);
+  private editingProjectId = signal<string | null>(null);
   private panelModalOpen = signal<boolean>(false);
   private reportModalOpen = signal<boolean>(false);
   private isLoading = signal<boolean>(false);
@@ -396,6 +398,82 @@ export class DashboardService {
     this.projectModalOpen.set(false);
   }
 
+  openEditProjectModal(projectId: string): void {
+    this.editingProjectId.set(projectId);
+    this.editProjectModalOpen.set(true);
+  }
+
+  closeEditProjectModal(): void {
+    this.editProjectModalOpen.set(false);
+    this.editingProjectId.set(null);
+  }
+
+  isEditProjectModalOpen(): boolean {
+    return this.editProjectModalOpen();
+  }
+
+  getEditingProjectId(): string | null {
+    return this.editingProjectId();
+  }
+
+  getEditingProject(): Project | null {
+    const projectId = this.editingProjectId();
+    if (!projectId) return null;
+    return this.projects().find(p => p.id === projectId) || null;
+  }
+
+  async updateProject(projectId: string, data: { name: string; description?: string; color: string }): Promise<void> {
+    const project = this.projects().find(p => p.id === projectId);
+    if (!project) return;
+
+    const updatedProject = {
+      ...project,
+      name: data.name,
+      description: data.description,
+      color: data.color
+    };
+
+    // Update in Supabase
+    if (this.isOnline()) {
+      await this.supabase.updateProject(projectId, {
+        name: data.name,
+        description: data.description,
+        color: data.color
+      });
+    }
+
+    // Update local state
+    this.projects.update(projects => 
+      projects.map(p => p.id === projectId ? updatedProject : p)
+    );
+
+    this.closeEditProjectModal();
+  }
+
+  async deleteProject(projectId: string): Promise<void> {
+    // Delete from Supabase
+    if (this.isOnline()) {
+      await this.supabase.deleteProject(projectId);
+    }
+
+    // Update local state
+    this.projects.update(projects => projects.filter(p => p.id !== projectId));
+
+    // If the deleted project was selected, clear selection
+    if (this.selectedProjectId() === projectId) {
+      const remainingProjects = this.projects();
+      if (remainingProjects.length > 0) {
+        this.selectProject(remainingProjects[0].id);
+      } else {
+        this.selectedProjectId.set('');
+        this.selectedPanelId.set('');
+        this.selectedReportId.set('');
+      }
+    }
+
+    this.closeEditProjectModal();
+  }
+
   // Panel Management
   openPanelModal(): void {
     this.panelModalOpen.set(true);
@@ -550,28 +628,6 @@ export class DashboardService {
     this.selectedReportId.set(reportId);
   }
 
-  async updateProject(projectId: string, data: { name?: string; description?: string; color?: string }): Promise<void> {
-    this.projects.update(projects => 
-      projects.map(p => p.id === projectId ? { ...p, ...data } : p)
-    );
-
-    if (this.isOnline()) {
-      this.supabase.updateProject(projectId, data).catch(console.error);
-    }
-  }
-
-  async deleteProject(projectId: string): Promise<void> {
-    this.projects.update(projects => projects.filter(p => p.id !== projectId));
-    const remaining = this.projects();
-    if (remaining.length > 0) {
-      this.selectProject(remaining[0].id);
-    }
-
-    if (this.isOnline()) {
-      this.supabase.deleteProject(projectId).catch(console.error);
-    }
-  }
-
   async createPanel(name: string, description?: string): Promise<void> {
     const projectId = this.selectedProjectId();
     const now = new Date();
@@ -691,7 +747,8 @@ export class DashboardService {
       'progress-card': 'Nova Barra de Progresso',
       'comparison-card': 'Novo Comparativo',
       'text-block': 'Resumo',
-      'task-list': 'Lista de Tarefas'
+      'task-list': 'Lista de Tarefas',
+      'jira-sprint': 'Jira Sprint'
     };
     return titles[type];
   }
@@ -730,6 +787,8 @@ export class DashboardService {
         };
       case 'task-list':
         return [];
+      case 'jira-sprint':
+        return { jiraConfig: null };
       default:
         return {};
     }

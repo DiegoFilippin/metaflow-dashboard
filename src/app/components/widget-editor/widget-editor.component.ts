@@ -2,6 +2,7 @@ import { Component, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DashboardService } from '../../services/dashboard.service';
+import { JiraService, JiraSprint } from '../../services/jira.service';
 import { Widget, TableColumn } from '../../models/dashboard.models';
 
 @Component({
@@ -461,6 +462,110 @@ import { Widget, TableColumn } from '../../models/dashboard.models';
             </div>
           }
 
+          <!-- Jira Sprint Config -->
+          @if (selectedWidget.type === 'jira-sprint') {
+            <div class="space-y-4 p-3 bg-gray-50 rounded-lg">
+              <div class="flex items-center gap-2">
+                <div class="w-5 h-5 bg-blue-100 rounded flex items-center justify-center">
+                  <svg class="w-3 h-3 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M11.571 11.513H0a5.218 5.218 0 0 0 5.232 5.215h2.13v2.057A5.215 5.215 0 0 0 12.575 24V12.518a1.005 1.005 0 0 0-1.005-1.005z"/>
+                  </svg>
+                </div>
+                <p class="text-xs font-semibold text-gray-500 uppercase">Configuração Jira</p>
+              </div>
+              
+              <div class="space-y-3">
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">URL do Jira *</label>
+                  <input type="url" [(ngModel)]="jiraBaseUrl" placeholder="https://sua-empresa.atlassian.net"
+                    class="w-full px-2 py-1.5 border border-gray-200 rounded text-xs" />
+                </div>
+                
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Email *</label>
+                  <input type="email" [(ngModel)]="jiraEmail" placeholder="seu@email.com"
+                    class="w-full px-2 py-1.5 border border-gray-200 rounded text-xs" />
+                </div>
+                
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">API Token *</label>
+                  <input type="password" [(ngModel)]="jiraApiToken" placeholder="Token de API do Jira"
+                    class="w-full px-2 py-1.5 border border-gray-200 rounded text-xs" />
+                  <p class="text-xs text-gray-400 mt-1">
+                    <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank" class="text-blue-500 hover:underline">
+                      Gerar token
+                    </a>
+                  </p>
+                </div>
+                
+                <div>
+                  <label class="block text-xs text-gray-600 mb-1">Projeto (Key) *</label>
+                  <input type="text" [(ngModel)]="jiraProjectKey" placeholder="PROJ"
+                    class="w-full px-2 py-1.5 border border-gray-200 rounded text-xs font-mono uppercase" />
+                </div>
+
+                <button 
+                  (click)="testJiraConnection()"
+                  [disabled]="jiraTestLoading"
+                  class="w-full px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-200 transition-colors disabled:opacity-50"
+                >
+                  @if (jiraTestLoading) {
+                    <span class="flex items-center justify-center gap-2">
+                      <span class="animate-spin w-3 h-3 border-2 border-gray-500 border-t-transparent rounded-full"></span>
+                      Testando...
+                    </span>
+                  } @else {
+                    Testar Conexão
+                  }
+                </button>
+
+                @if (jiraTestResult) {
+                  <p class="text-xs" [class]="jiraTestResult.success ? 'text-green-600' : 'text-red-600'">
+                    {{ jiraTestResult.message }}
+                  </p>
+                }
+
+                @if (jiraTestResult?.success) {
+                  <div>
+                    <label class="block text-xs text-gray-600 mb-1">Sprint</label>
+                    @if (jiraSprintsLoading) {
+                      <p class="text-xs text-gray-400">Carregando sprints...</p>
+                    } @else if (jiraSprints.length > 0) {
+                      <select [(ngModel)]="jiraSprintId" (ngModelChange)="saveJiraConfig()"
+                        class="w-full px-2 py-1.5 border border-gray-200 rounded text-xs">
+                        <option value="">Selecione uma sprint</option>
+                        @for (sprint of jiraSprints; track sprint.id) {
+                          <option [value]="sprint.id">{{ sprint.name }} ({{ sprint.state }})</option>
+                        }
+                      </select>
+                    } @else {
+                      <p class="text-xs text-gray-400">Nenhuma sprint encontrada</p>
+                    }
+                  </div>
+
+                  <button 
+                    (click)="saveJiraConfig()"
+                    [disabled]="!jiraSprintId"
+                    class="w-full px-3 py-2 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Salvar e Sincronizar
+                  </button>
+                }
+
+                @if (isJiraConfigured()) {
+                  <div class="pt-3 border-t border-gray-200">
+                    <p class="text-xs text-green-600 flex items-center gap-1">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                      </svg>
+                      Sincronização ativa (a cada 30s)
+                    </p>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
           <!-- Delete Widget -->
           <div class="pt-4 border-t border-gray-100">
             <button
@@ -477,6 +582,7 @@ import { Widget, TableColumn } from '../../models/dashboard.models';
 })
 export class WidgetEditorComponent {
   dashboardService = inject(DashboardService);
+  private jiraService = inject(JiraService);
   private lastWidgetId: string | null = null;
 
   colSpanOptions: (1 | 2 | 3)[] = [1, 2, 3];
@@ -533,6 +639,17 @@ export class WidgetEditorComponent {
 
   // Task List
   taskList: { id: string; name: string; description?: string; status: 'todo' | 'in_progress' | 'done' | 'blocked'; priority?: 'low' | 'medium' | 'high'; assignee?: string; jiraKey?: string }[] = [];
+
+  // Jira Sprint
+  jiraBaseUrl = '';
+  jiraEmail = '';
+  jiraApiToken = '';
+  jiraProjectKey = '';
+  jiraSprintId = '';
+  jiraSprints: JiraSprint[] = [];
+  jiraTestLoading = false;
+  jiraSprintsLoading = false;
+  jiraTestResult: { success: boolean; message: string } | null = null;
 
   constructor() {
     effect(() => {
@@ -595,6 +712,28 @@ export class WidgetEditorComponent {
       case 'task-list':
         this.taskList = Array.isArray(widget.data) ? widget.data.map(t => ({...t})) : [];
         break;
+      case 'jira-sprint':
+        const jiraConfig = widget.data?.jiraConfig;
+        if (jiraConfig) {
+          this.jiraBaseUrl = jiraConfig.baseUrl || '';
+          this.jiraEmail = jiraConfig.email || '';
+          this.jiraApiToken = jiraConfig.apiToken || '';
+          this.jiraProjectKey = jiraConfig.projectKey || '';
+          this.jiraSprintId = jiraConfig.sprintId || '';
+          if (this.jiraBaseUrl && this.jiraEmail && this.jiraApiToken && this.jiraProjectKey) {
+            this.jiraTestResult = { success: true, message: 'Configurado' };
+            this.loadJiraSprints();
+          }
+        } else {
+          this.jiraBaseUrl = '';
+          this.jiraEmail = '';
+          this.jiraApiToken = '';
+          this.jiraProjectKey = '';
+          this.jiraSprintId = '';
+          this.jiraSprints = [];
+          this.jiraTestResult = null;
+        }
+        break;
     }
   }
 
@@ -609,7 +748,8 @@ export class WidgetEditorComponent {
       'progress-card': 'Card de Progresso',
       'comparison-card': 'Card Comparativo',
       'text-block': 'Bloco de Texto',
-      'task-list': 'Lista de Tarefas'
+      'task-list': 'Lista de Tarefas',
+      'jira-sprint': 'Jira Sprint'
     };
     return names[type] || type;
   }
@@ -773,6 +913,67 @@ export class WidgetEditorComponent {
     if (widgetId) {
       this.dashboardService.updateWidgetData(widgetId, [...this.taskList]);
     }
+  }
+
+  // Jira Methods
+  async testJiraConnection(): Promise<void> {
+    if (!this.jiraBaseUrl || !this.jiraEmail || !this.jiraApiToken || !this.jiraProjectKey) {
+      this.jiraTestResult = { success: false, message: 'Preencha todos os campos obrigatórios' };
+      return;
+    }
+
+    this.jiraTestLoading = true;
+    this.jiraTestResult = null;
+
+    const config = {
+      baseUrl: this.jiraBaseUrl,
+      email: this.jiraEmail,
+      apiToken: this.jiraApiToken,
+      projectKey: this.jiraProjectKey.toUpperCase()
+    };
+
+    this.jiraTestResult = await this.jiraService.testConnection(config);
+    this.jiraTestLoading = false;
+
+    if (this.jiraTestResult.success) {
+      await this.loadJiraSprints();
+    }
+  }
+
+  async loadJiraSprints(): Promise<void> {
+    this.jiraSprintsLoading = true;
+    
+    const config = {
+      baseUrl: this.jiraBaseUrl,
+      email: this.jiraEmail,
+      apiToken: this.jiraApiToken,
+      projectKey: this.jiraProjectKey.toUpperCase()
+    };
+
+    this.jiraSprints = await this.jiraService.getSprints(config);
+    this.jiraSprintsLoading = false;
+  }
+
+  saveJiraConfig(): void {
+    const widgetId = this.dashboardService.currentWidgetId();
+    if (!widgetId) return;
+
+    const jiraConfig = {
+      baseUrl: this.jiraBaseUrl,
+      email: this.jiraEmail,
+      apiToken: this.jiraApiToken,
+      projectKey: this.jiraProjectKey.toUpperCase(),
+      sprintId: this.jiraSprintId
+    };
+
+    this.dashboardService.updateWidgetData(widgetId, { jiraConfig });
+  }
+
+  isJiraConfigured(): boolean {
+    const widget = this.selectedWidget;
+    if (!widget || widget.type !== 'jira-sprint') return false;
+    const config = widget.data?.jiraConfig;
+    return !!(config?.baseUrl && config?.email && config?.apiToken && config?.projectKey && config?.sprintId);
   }
 
   deleteWidget(): void {

@@ -42,17 +42,28 @@ import { AuthService } from '../../services/auth.service';
         </div>
         <nav class="space-y-1">
           @for (project of dashboardService.projectList(); track project.id) {
-            <button
-              (click)="selectProject(project.id)"
-              [class]="getProjectClass(project.id)"
-              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-150"
-            >
-              <div 
-                class="w-3 h-3 rounded-full flex-shrink-0"
-                [style.backgroundColor]="project.color"
-              ></div>
-              <span class="font-medium truncate">{{ project.name }}</span>
-            </button>
+            <div class="group relative">
+              <button
+                (click)="selectProject(project.id)"
+                [class]="getProjectClass(project.id)"
+                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-150"
+              >
+                <div 
+                  class="w-3 h-3 rounded-full flex-shrink-0"
+                  [style.backgroundColor]="project.color"
+                ></div>
+                <span class="font-medium truncate flex-1">{{ project.name }}</span>
+              </button>
+              <button
+                (click)="editProject(project.id); $event.stopPropagation()"
+                class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-brand-600 hover:bg-brand-50 rounded opacity-0 group-hover:opacity-100 transition-all"
+                title="Editar projeto"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                </svg>
+              </button>
+            </div>
           }
         </nav>
       </div>
@@ -132,6 +143,10 @@ export class SidebarComponent {
   selectProject(projectId: string): void {
     this.dashboardService.selectProject(projectId);
     this.router.navigate(['/']);
+  }
+
+  editProject(projectId: string): void {
+    this.dashboardService.openEditProjectModal(projectId);
   }
 
   goToAdminUsers(): void {

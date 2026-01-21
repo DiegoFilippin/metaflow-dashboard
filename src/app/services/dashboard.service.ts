@@ -690,7 +690,8 @@ export class DashboardService {
       'line-chart': 'Novo Gráfico de Linha',
       'progress-card': 'Nova Barra de Progresso',
       'comparison-card': 'Novo Comparativo',
-      'text-block': 'Resumo'
+      'text-block': 'Resumo',
+      'task-list': 'Lista de Tarefas'
     };
     return titles[type];
   }
@@ -727,6 +728,8 @@ export class DashboardService {
         return { 
           content: 'Digite seu resumo aqui...\n\nUse **negrito** e *itálico* para destacar.\n\n- Item de lista\n- Outro item'
         };
+      case 'task-list':
+        return [];
       default:
         return {};
     }

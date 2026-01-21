@@ -10,6 +10,7 @@ import { LineChartComponent } from '../widgets/line-chart/line-chart.component';
 import { ProgressCardComponent } from '../widgets/progress-card/progress-card.component';
 import { ComparisonCardComponent } from '../widgets/comparison-card/comparison-card.component';
 import { TextBlockComponent } from '../widgets/text-block/text-block.component';
+import { TaskListComponent } from '../widgets/task-list/task-list.component';
 import { Widget } from '../../models/dashboard.models';
 
 @Component({
@@ -25,7 +26,8 @@ import { Widget } from '../../models/dashboard.models';
     LineChartComponent,
     ProgressCardComponent,
     ComparisonCardComponent,
-    TextBlockComponent
+    TextBlockComponent,
+    TaskListComponent
   ],
   template: `
     <div class="p-6 overflow-y-auto h-full">
@@ -92,6 +94,9 @@ import { Widget } from '../../models/dashboard.models';
                 }
                 @case ('text-block') {
                   <app-text-block [widget]="widget" />
+                }
+                @case ('task-list') {
+                  <app-task-list [widget]="widget" />
                 }
               }
             </div>

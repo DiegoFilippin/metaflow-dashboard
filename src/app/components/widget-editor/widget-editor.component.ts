@@ -391,6 +391,76 @@ import { Widget, TableColumn } from '../../models/dashboard.models';
             </div>
           }
 
+          <!-- Task List Config -->
+          @if (selectedWidget.type === 'task-list') {
+            <div class="space-y-4 p-3 bg-gray-50 rounded-lg">
+              <div class="flex items-center justify-between">
+                <p class="text-xs font-semibold text-gray-500 uppercase">Tarefas</p>
+                <button (click)="addTask()" class="text-xs text-brand-600 hover:text-brand-700 font-medium">
+                  + Tarefa
+                </button>
+              </div>
+              
+              @for (task of taskList; track $index) {
+                <div class="p-3 bg-white rounded-lg border border-gray-200 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-500">Tarefa {{ $index + 1 }}</span>
+                    <button (click)="removeTask($index)" class="text-red-500 hover:text-red-600">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  <input type="text" [(ngModel)]="task.name" (ngModelChange)="updateTaskList()" placeholder="Nome da tarefa"
+                    class="w-full px-2 py-1.5 border border-gray-200 rounded text-sm" />
+                  
+                  <textarea [(ngModel)]="task.description" (ngModelChange)="updateTaskList()" placeholder="Descrição (opcional)"
+                    rows="2" class="w-full px-2 py-1.5 border border-gray-200 rounded text-xs resize-none"></textarea>
+                  
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <label class="block text-xs text-gray-500 mb-1">Status</label>
+                      <select [(ngModel)]="task.status" (ngModelChange)="updateTaskList()"
+                        class="w-full px-2 py-1.5 border border-gray-200 rounded text-xs">
+                        <option value="todo">A fazer</option>
+                        <option value="in_progress">Em andamento</option>
+                        <option value="done">Concluída</option>
+                        <option value="blocked">Bloqueada</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-xs text-gray-500 mb-1">Prioridade</label>
+                      <select [(ngModel)]="task.priority" (ngModelChange)="updateTaskList()"
+                        class="w-full px-2 py-1.5 border border-gray-200 rounded text-xs">
+                        <option value="low">Baixa</option>
+                        <option value="medium">Média</option>
+                        <option value="high">Alta</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <label class="block text-xs text-gray-500 mb-1">Responsável</label>
+                      <input type="text" [(ngModel)]="task.assignee" (ngModelChange)="updateTaskList()" placeholder="Nome"
+                        class="w-full px-2 py-1.5 border border-gray-200 rounded text-xs" />
+                    </div>
+                    <div>
+                      <label class="block text-xs text-gray-500 mb-1">Jira Key</label>
+                      <input type="text" [(ngModel)]="task.jiraKey" (ngModelChange)="updateTaskList()" placeholder="PROJ-123"
+                        class="w-full px-2 py-1.5 border border-gray-200 rounded text-xs font-mono" />
+                    </div>
+                  </div>
+                </div>
+              }
+              
+              @if (taskList.length === 0) {
+                <p class="text-xs text-gray-400 text-center py-4">Nenhuma tarefa adicionada</p>
+              }
+            </div>
+          }
+
           <!-- Delete Widget -->
           <div class="pt-4 border-t border-gray-100">
             <button
@@ -461,6 +531,9 @@ export class WidgetEditorComponent {
   // Text Block
   textContent = '';
 
+  // Task List
+  taskList: { id: string; name: string; description?: string; status: 'todo' | 'in_progress' | 'done' | 'blocked'; priority?: 'low' | 'medium' | 'high'; assignee?: string; jiraKey?: string }[] = [];
+
   constructor() {
     effect(() => {
       const widgetId = this.dashboardService.currentWidgetId();
@@ -519,6 +592,9 @@ export class WidgetEditorComponent {
       case 'text-block':
         this.textContent = widget.data?.content || '';
         break;
+      case 'task-list':
+        this.taskList = Array.isArray(widget.data) ? widget.data.map(t => ({...t})) : [];
+        break;
     }
   }
 
@@ -532,7 +608,8 @@ export class WidgetEditorComponent {
       'gauge-chart': 'Indicador Gauge',
       'progress-card': 'Card de Progresso',
       'comparison-card': 'Card Comparativo',
-      'text-block': 'Bloco de Texto'
+      'text-block': 'Bloco de Texto',
+      'task-list': 'Lista de Tarefas'
     };
     return names[type] || type;
   }
@@ -671,6 +748,30 @@ export class WidgetEditorComponent {
       this.dashboardService.updateWidgetData(widgetId, {
         content: this.textContent
       });
+    }
+  }
+
+  // Task List Methods
+  addTask(): void {
+    this.taskList.push({
+      id: crypto.randomUUID(),
+      name: '',
+      description: '',
+      status: 'todo',
+      priority: 'medium'
+    });
+    this.updateTaskList();
+  }
+
+  removeTask(index: number): void {
+    this.taskList.splice(index, 1);
+    this.updateTaskList();
+  }
+
+  updateTaskList(): void {
+    const widgetId = this.dashboardService.currentWidgetId();
+    if (widgetId) {
+      this.dashboardService.updateWidgetData(widgetId, [...this.taskList]);
     }
   }
 

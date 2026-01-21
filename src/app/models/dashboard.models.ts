@@ -33,7 +33,7 @@ export interface Widget {
   config: WidgetConfig;
 }
 
-export type WidgetType = 'kpi-card' | 'bar-chart' | 'pie-chart' | 'data-table' | 'gauge-chart' | 'line-chart' | 'progress-card' | 'comparison-card' | 'text-block';
+export type WidgetType = 'kpi-card' | 'bar-chart' | 'pie-chart' | 'data-table' | 'gauge-chart' | 'line-chart' | 'progress-card' | 'comparison-card' | 'text-block' | 'task-list';
 
 export type UserRole = 'admin' | 'editor' | 'viewer';
 
@@ -83,4 +83,15 @@ export interface ChartDataPoint {
 
 export interface TableRow {
   [key: string]: string | number | 'green' | 'yellow' | 'red';
+}
+
+export interface Task {
+  id: string;
+  name: string;
+  description?: string;
+  status: 'todo' | 'in_progress' | 'done' | 'blocked';
+  priority?: 'low' | 'medium' | 'high';
+  dueDate?: string;
+  assignee?: string;
+  jiraKey?: string;
 }
